@@ -1,11 +1,12 @@
 export class Game {
     
-    constructor(){
+    constructor(mouseControl){
         this.spaceObjectList = [
             new Ship(400, 400, 2*Math.PI/3),
             new Planet(25, 505, 19, 10),
             new Planet(215, 88, 17, 15)
         ]
+        this.mouseControl = true;
     }
 
     drawGame(canvasContext, fuelContext){
@@ -13,6 +14,23 @@ export class Game {
             this.spaceObjectList[j].drawSelf(canvasContext, fuelContext);
         }
         return;
+    }
+
+    updateGame(){
+        // update the game state (move ship, accelerate ship, check collisions, bounce, etc)
+    }
+
+    updateModel(){
+        // check model prediction and backpropagate
+    }
+
+    drawModel(canvasContext){
+        // draw model
+    }
+
+    switchControl(){
+        // change control from mouse to model or from model to mouse
+        this.mouseControl = !this.mouseControl;
     }
 }
 
