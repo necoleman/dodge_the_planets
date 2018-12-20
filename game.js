@@ -151,13 +151,19 @@ class Ship extends SpaceObject {
         if(rSquared === 0){
             return;
         }
-        // calculate acceleration and update velocity
-        var fx = (state.G*planet.mass/rSquared)*Math.cos(angleToPlanet)
-        var fy = (state.G*planet.mass/rSquared)*Math.sin(angleToPlanet)
-        this.vx += fx
-        this.vy += fy
         // check for collision and handle
         if(rSquared < Math.pow(planet.radius, 2)){
+            // if colliding, transport back to the surface of the planet
+            // this avoids a numerical feedback loop where ship experiences
+            // greater acceleration the further it numerically errors
+            // into the planet, thus speeding it up, thus causing greater
+            // numerical errors upon collision
+            this.x = planet.x - planet.radius*dx/Math.pow(rSquared, 0.5)
+            this.y = planet.y - planet.radius*dy/Math.pow(rSquared, 0.5)
+            var dx = planet.x - this.x;
+            var dy = planet.y - this.y;
+            var angleToPlanet = Math.atan2(dy, dx)
+            var rSquared = (Math.pow(dx, 2) + Math.pow(dy, 2));
             // v_par = <v, r>r/|r|^2 --- component of velocity toward planet
             // v_perp = v - v_par --- component of velocity parallel planet
             var vParallelX = (this.vx*dx + this.vy*dy)*dx/rSquared
@@ -170,6 +176,11 @@ class Ship extends SpaceObject {
             this.vy = vPerpY - vParallelY
             state.collisionCount++;
         }
+        // calculate acceleration and update velocity
+        var fx = (state.G*planet.mass/rSquared)*Math.cos(angleToPlanet)
+        var fy = (state.G*planet.mass/rSquared)*Math.sin(angleToPlanet)
+        this.vx += fx
+        this.vy += fy
     }
 
     updateSelf(state){
@@ -177,7 +188,7 @@ class Ship extends SpaceObject {
         if( state.mouseDown && this.fuelLeft > 0){
             this.vx += this.accel*Math.cos(this.angle);
             this.vy += this.accel*Math.sin(this.angle);
-            this.fuelLeft -= this.fuelUseOnMouseDown;
+            this.fuelLeft = Math.max(this.fuelLeft - this.fuelUseOnMouseDown, 0);
         }
         this.x = this.x + state.timeTick*this.vx;
         this.y = this.y + state.timeTick*this.vy;
